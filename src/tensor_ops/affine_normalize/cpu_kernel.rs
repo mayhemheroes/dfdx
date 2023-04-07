@@ -98,7 +98,7 @@ impl<E: Dtype + num_traits::Float> super::AffineNormalizeKernel<E> for Cpu {
             grad_mean[i_mean] -= gy * scale_i / std_i;
             grad_var[i_var] -= gy * centered_i * scale_i / (v + v);
             grad_scale[i_scale] += gy * centered_i / std_i;
-            grad_bias[i_bias] += E::ONE;
+            grad_bias[i_bias] += gy;
         }
         Ok(())
     }
