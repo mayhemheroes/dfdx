@@ -162,7 +162,8 @@ where
             grads.try_alloc_for(t)?;
         }
         grads.try_alloc_for(&out_ghost)?;
-        let (grad_inp, grad_out) = grads.many_and_ref(&inp_ghosts, &out_ghost);
+        let (grad_inp, grad_out) =
+            grads.many_and_ref(&inp_ghosts.iter().collect::<Vec<_>>(), &out_ghost);
         device.backward(grad_inp, grad_out)
     });
     Ok(out.put_tape(tape))

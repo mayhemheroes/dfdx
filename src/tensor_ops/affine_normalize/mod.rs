@@ -66,11 +66,42 @@ impl<S: Shape, E: Dtype, D: AffineNormalizeKernel<E>, T: Tape<E, D>> TryAffineNo
         let tape = tape.merge(tape1);
         let tape = tape.merge(tape2);
         let tape = tape.merge(tape3);
-        let tape = tape.merge(tape4);
+        let mut tape = tape.merge(tape4);
         let out = if !T::OWNS_TAPE {
             dev.forward(Ok(inp), &mean, &var, &scale, &bias, epsilon)?
         } else {
-            todo!()
+            let out = dev.forward(Err(&inp), &mean, &var, &scale, &bias, epsilon)?;
+            let inp_ghost = inp.ghost();
+            let mean_ghost = mean.ghost();
+            let var_ghost = var.ghost();
+            let scale_ghost = scale.ghost();
+            let bias_ghost = bias.ghost();
+            let out_ghost = out.ghost();
+            tape.add_backward_op(move |grads| {
+                grads.try_alloc_for(&inp_ghost)?;
+                grads.try_alloc_for(&mean_ghost)?;
+                grads.try_alloc_for(&var_ghost)?;
+                grads.try_alloc_for(&scale_ghost)?;
+                grads.try_alloc_for(&bias_ghost)?;
+                grads.try_alloc_for(&out_ghost)?;
+                let (inps, grad_out) = grads.many_and_ref(
+                    &[
+                        &inp_ghost,
+                        &mean_ghost,
+                        &var_ghost,
+                        &scale_ghost,
+                        &bias_ghost,
+                    ],
+                    &out_ghost,
+                );
+                let [grad_x, grad_mean, grad_var, grad_scale, grad_bias]: [&mut D::Vec<E>; 5] =
+                    inps.try_into().unwrap();
+                inp_ghost.dev.backward(
+                    &inp, grad_x, &mean, grad_mean, &var, grad_var, &scale, grad_scale, &bias,
+                    grad_bias, epsilon, grad_out,
+                )
+            });
+            out
         };
         Ok(out.put_tape(tape))
     }

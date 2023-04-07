@@ -40,28 +40,22 @@ where
     // update statistics since we are training - off tape
     mean.try_axpy(E::ONE - momentum, &mean_chan, momentum)?;
 
-    let centered = x.try_sub(mean_chan.try_broadcast_like(&shape)?)?;
-
-    let var_chan = centered
+    let var_chan = x
         .retaped::<T>()
+        .try_sub(mean_chan.retaped::<T>().try_broadcast_like(&shape)?)?
         .try_square()?
         .try_mean::<Rank1<C>, _>()?;
 
     // NOTE: uses unbiased variance in running estimate
     var.try_axpy(E::ONE - momentum, &var_chan, momentum * n / (n - E::ONE))?;
 
-    // statistics for normalizing - on tape
-    let std = var_chan.try_add(epsilon)?.try_sqrt()?;
-
-    // record broadcast of scale & bias - on tape
-    let scale = scale
-        .retaped::<T>()
-        .try_div(std)?
-        .try_broadcast_like(&shape)?;
-    let bias = bias.retaped::<T>().try_broadcast_like(&shape)?;
-
-    // normalize & affine - on tape
-    centered.try_mul(scale)?.try_add(bias)
+    x.try_affine_normalize(
+        mean_chan.try_broadcast_like(&shape)?,
+        var_chan.try_broadcast_like(&shape)?,
+        scale.retaped::<T>().try_broadcast_like(&shape)?,
+        bias.retaped::<T>().try_broadcast_like(&shape)?,
+        epsilon,
+    )
 }
 
 /// generic batchnorm forward for inference

@@ -161,7 +161,7 @@ impl<E: Unit, D: DeviceStorage> Gradients<E, D> {
     #[inline]
     pub(crate) fn many_and_ref<L: Shape, R: Shape>(
         &mut self,
-        ls: &Vec<GhostTensor<L, E, D>>,
+        ls: &[&GhostTensor<L, E, D>],
         r: &GhostTensor<R, E, D>,
     ) -> (Vec<&mut D::Vec<E>>, &D::Vec<E>) {
         for i in 0..ls.len() {
