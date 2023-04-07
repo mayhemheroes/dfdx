@@ -58,7 +58,7 @@ impl<S: Shape, E: Dtype, D: AffineNormalizeKernel<E>, T: Tape<E, D>> TryAffineNo
 {
     fn try_affine_normalize(
         self,
-        mean: Option<Self>,
+        opt_mean: Option<Self>,
         var: Self,
         scale: Self,
         bias: Self,
@@ -66,7 +66,7 @@ impl<S: Shape, E: Dtype, D: AffineNormalizeKernel<E>, T: Tape<E, D>> TryAffineNo
     ) -> Result<Self, Self::Err> {
         let (inp, mut tape) = self.split_tape();
         let dev = inp.device.clone();
-        let (mean, tape1) = mean.map(|m| m.split_tape()).unzip();
+        let (opt_mean, tape1) = opt_mean.map(|m| m.split_tape()).unzip();
         if let Some(tape1) = tape1 {
             tape = tape.merge(tape1);
         }
@@ -78,28 +78,28 @@ impl<S: Shape, E: Dtype, D: AffineNormalizeKernel<E>, T: Tape<E, D>> TryAffineNo
         tape = tape.merge(tape4);
 
         let out = if !T::OWNS_TAPE {
-            dev.forward(Ok(inp), mean.as_ref(), &var, &scale, &bias, epsilon)?
+            dev.forward(Ok(inp), opt_mean.as_ref(), &var, &scale, &bias, epsilon)?
         } else {
-            let out = dev.forward(Err(&inp), mean.as_ref(), &var, &scale, &bias, epsilon)?;
+            let out = dev.forward(Err(&inp), opt_mean.as_ref(), &var, &scale, &bias, epsilon)?;
             let inp_gh = inp.ghost();
-            let mean_gh = mean.as_ref().map(|m| m.ghost());
+            let opt_mean_gh = opt_mean.as_ref().map(|m| m.ghost());
             let var_gh = var.ghost();
             let scale_gh = scale.ghost();
             let bias_gh = bias.ghost();
             let out_gh = out.ghost();
             tape.add_backward_op(move |grads| {
                 grads.try_alloc_for(&inp_gh)?;
-                if let Some(mean_ghost) = &mean_gh {
+                if let Some(mean_ghost) = &opt_mean_gh {
                     grads.try_alloc_for(mean_ghost)?;
                 }
                 grads.try_alloc_for(&var_gh)?;
                 grads.try_alloc_for(&scale_gh)?;
                 grads.try_alloc_for(&bias_gh)?;
                 grads.try_alloc_for(&out_gh)?;
-                let (inps, grad_out) = match &mean_gh {
-                    Some(mean_ghost) => {
+                let (inps, grad_out) = match &opt_mean_gh {
+                    Some(mean_gh) => {
                         let (inps, grad_out) = grads.many_and_ref(
-                            &[&inp_gh, mean_ghost, &var_gh, &scale_gh, &bias_gh],
+                            &[&inp_gh, mean_gh, &var_gh, &scale_gh, &bias_gh],
                             &out_gh,
                         );
                         let inps: [&mut D::Vec<E>; 5] = inps.try_into().unwrap();
@@ -121,7 +121,7 @@ impl<S: Shape, E: Dtype, D: AffineNormalizeKernel<E>, T: Tape<E, D>> TryAffineNo
                 inp_gh.dev.backward(
                     &inp,
                     grad_x,
-                    mean.as_ref(),
+                    opt_mean.as_ref(),
                     grad_mean,
                     &var,
                     grad_var,
