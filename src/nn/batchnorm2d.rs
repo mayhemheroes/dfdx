@@ -77,16 +77,13 @@ where
     Rank1<C>: BroadcastShapeTo<S, Ax>,
 {
     let shape = *x.shape();
-
-    // statistics for normalizing
-    let std = var.clone().try_add(epsilon)?.try_sqrt()?;
-
-    let scale = scale.clone().try_div(std)?.try_broadcast_like(&shape)?;
-
-    // normalize & affine
-    let x = x.try_sub(mean.clone().try_broadcast_like(&shape)?)?;
-    let x = x.try_mul(scale)?;
-    x.try_add(bias.clone().try_broadcast_like(&shape)?)
+    x.try_affine_normalize(
+        mean.clone().try_broadcast_like(&shape)?,
+        var.clone().try_broadcast_like(&shape)?,
+        scale.clone().try_broadcast_like(&shape)?,
+        bias.clone().try_broadcast_like(&shape)?,
+        epsilon,
+    )
 }
 
 /// Batch normalization for images as described in

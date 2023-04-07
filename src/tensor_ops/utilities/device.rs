@@ -101,6 +101,7 @@ pub trait Device<E: Dtype>:
     + BinaryKernel<super::super::maximum::MaximumKernelOp, E>
     + BinaryKernel<super::super::minimum::MinimumKernelOp, E>
     + crate::tensor_ops::axpy::AxpyKernel<E>
+    + super::super::affine_normalize::AffineNormalizeKernel<E>
 {
 }
 
