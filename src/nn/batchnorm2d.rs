@@ -40,17 +40,20 @@ where
     // update statistics since we are training - off tape
     mean.try_axpy(E::ONE - momentum, &mean_chan, momentum)?;
 
-    let var_chan = x
+    let centered = x
         .retaped::<T>()
-        .try_sub(mean_chan.retaped::<T>().try_broadcast_like(&shape)?)?
+        .try_sub(mean_chan.try_broadcast_like(&shape)?)?;
+
+    let var_chan = centered
+        .retaped::<T>()
         .try_square()?
         .try_mean::<Rank1<C>, _>()?;
 
     // NOTE: uses unbiased variance in running estimate
     var.try_axpy(E::ONE - momentum, &var_chan, momentum * n / (n - E::ONE))?;
 
-    x.try_affine_normalize(
-        mean_chan.try_broadcast_like(&shape)?,
+    centered.try_affine_normalize(
+        None,
         var_chan.try_broadcast_like(&shape)?,
         scale.retaped::<T>().try_broadcast_like(&shape)?,
         bias.retaped::<T>().try_broadcast_like(&shape)?,
@@ -72,7 +75,7 @@ where
 {
     let shape = *x.shape();
     x.try_affine_normalize(
-        mean.clone().try_broadcast_like(&shape)?,
+        Some(mean.clone().try_broadcast_like(&shape)?),
         var.clone().try_broadcast_like(&shape)?,
         scale.clone().try_broadcast_like(&shape)?,
         bias.clone().try_broadcast_like(&shape)?,
