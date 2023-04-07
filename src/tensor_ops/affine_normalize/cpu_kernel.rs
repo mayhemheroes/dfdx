@@ -72,18 +72,21 @@ impl<E: Dtype + num_traits::Float> super::AffineNormalizeKernel<E> for Cpu {
             let i_bias = bias_idx.next().unwrap();
 
             let x_i = x.data[i_x];
-            let mean_i = opt_i_mean.map(|i_mean| opt_mean.unwrap().data[i_mean]);
             let var_i = var.data[i_var];
             let scale_i = scale.data[i_scale];
-
-            let centered_i = x_i - mean_i.unwrap_or_default();
             let std_i = (var_i + epsilon).sqrt();
             let v = (var_i + epsilon).powf(E::from_f32(1.5).unwrap());
 
+            let mean_i = match opt_i_mean {
+                Some(i_mean) => {
+                    opt_grad_mean.as_mut().unwrap()[i_mean] -= gy * scale_i / std_i;
+                    opt_mean.as_ref().unwrap().data[i_mean]
+                }
+                None => Default::default(),
+            };
+            let centered_i = x_i - mean_i;
+
             grad_x[i_x] += gy * scale_i / std_i;
-            if let Some(i_mean) = opt_i_mean {
-                opt_grad_mean.as_mut().unwrap()[i_mean] -= gy * scale_i / std_i;
-            }
             grad_var[i_var] -= gy * centered_i * scale_i / (v + v);
             grad_scale[i_scale] += gy * centered_i / std_i;
             grad_bias[i_bias] += gy;
