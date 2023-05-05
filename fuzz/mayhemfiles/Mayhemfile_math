@@ -1,0 +1,7 @@
+project: dfdx
+target: math
+duration: 90
+
+cmds:
+    - cmd: /math
+

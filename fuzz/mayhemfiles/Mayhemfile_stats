@@ -1,0 +1,7 @@
+project: dfdx
+target: stats
+duration: 90
+
+cmds:
+    - cmd: /stats
+
