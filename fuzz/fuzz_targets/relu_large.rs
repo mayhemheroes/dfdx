@@ -10,8 +10,8 @@ fuzz_target!(|input: (Vec<f64>, f64)| {
         }
     };
 
-    let min = tensor_vals.len().min(64);
-    let mut tensor_vec = [0.0; 64];
+    let min = tensor_vals.len().min(256);
+    let mut tensor_vec = [0.0; 256];
     tensor_vec[0..min].copy_from_slice(&tensor_vals[0..min]);
 
     let dev: Cpu = Default::default();

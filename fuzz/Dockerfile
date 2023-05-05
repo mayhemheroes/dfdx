@@ -23,3 +23,9 @@ COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/relu /
 COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/math /
 
 COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/stats /
+
+COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/relu_large /
+
+COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/math_large /
+
+COPY --from=builder /dfdx/fuzz/target/x86_64-unknown-linux-gnu/release/stats_large /

@@ -57,6 +57,9 @@ jobs:
         - fuzz/mayhemfiles/Mayhemfile_relu
         - fuzz/mayhemfiles/Mayhemfile_math
         - fuzz/mayhemfiles/Mayhemfile_stats
+        - fuzz/mayhemfiles/Mayhemfile_relu_large
+        - fuzz/mayhemfiles/Mayhemfile_math_large
+        - fuzz/mayhemfiles/Mayhemfile_stats_large
     steps:
     - uses: actions/checkout@v3
     - name: Start analysis for ${{ matrix.mayhemfile }}

@@ -35,3 +35,21 @@ name = "stats"
 path = "fuzz_targets/stats.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "relu_large"
+path = "fuzz_targets/relu_large.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "math_large"
+path = "fuzz_targets/math_large.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "stats_large"
+path = "fuzz_targets/stats_large.rs"
+test = false
+doc = false
