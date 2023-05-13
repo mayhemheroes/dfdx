@@ -1,0 +1,55 @@
+[package]
+name = "dfdx-fuzz"
+version = "0.1.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.dfdx]
+path = "../"
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "relu"
+path = "fuzz_targets/relu.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "math"
+path = "fuzz_targets/math.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "stats"
+path = "fuzz_targets/stats.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "relu_large"
+path = "fuzz_targets/relu_large.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "math_large"
+path = "fuzz_targets/math_large.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "stats_large"
+path = "fuzz_targets/stats_large.rs"
+test = false
+doc = false

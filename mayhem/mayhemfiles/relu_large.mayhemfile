@@ -1,0 +1,7 @@
+project: dfdx
+target: relu_large
+duration: 90
+
+cmds:
+    - cmd: /relu_large
+
