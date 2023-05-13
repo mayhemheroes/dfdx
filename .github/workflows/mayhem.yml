@@ -41,7 +41,7 @@ jobs:
       with:
         context: .
         push: true
-        file: fuzz/Dockerfile
+        file: mayhem/Dockerfile
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
     outputs:
@@ -54,12 +54,12 @@ jobs:
       fail-fast: false
       matrix:
         mayhemfile:
-        - fuzz/mayhemfiles/Mayhemfile_relu
-        - fuzz/mayhemfiles/Mayhemfile_math
-        - fuzz/mayhemfiles/Mayhemfile_stats
-        - fuzz/mayhemfiles/Mayhemfile_relu_large
-        - fuzz/mayhemfiles/Mayhemfile_math_large
-        - fuzz/mayhemfiles/Mayhemfile_stats_large
+        - mayhem/mayhemfiles/relu.mayhemfile
+        - mayhem/mayhemfiles/math.mayhemfile
+        - mayhem/mayhemfiles/stats.mayhemfile
+        - mayhem/mayhemfiles/relu_large.mayhemfile
+        - mayhem/mayhemfiles/math_large.mayhemfile
+        - mayhem/mayhemfiles/stats_large.mayhemfile
     steps:
     - uses: actions/checkout@v3
     - name: Start analysis for ${{ matrix.mayhemfile }}
